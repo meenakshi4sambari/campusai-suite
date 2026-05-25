@@ -151,7 +151,6 @@ function DashboardPage() {
           </div>
 
           <div className="flex gap-2">
-          
             <Button variant="outline" size="sm">Export snapshot</Button>
             <Button size="sm" className="gap-1.5" onClick={generateReport} disabled={generating}>
               {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
@@ -247,29 +246,53 @@ function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="shadow-soft">
-            <CardHeader className="pb-2"><CardTitle className="text-base">Risk Heatmap</CardTitle></CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-3 gap-1.5 text-[10px]">
+          <Card className="shadow-soft flex flex-col justify-between">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">Risk Heatmap</CardTitle>
+            </CardHeader>
+            <CardContent className="flex-1 flex flex-col justify-between">
+              <div className="grid grid-cols-3 gap-2 text-[11px]">
                 {projects.slice(0, 6).map((p) => {
+                  const riskLevel = p.risk?.toLowerCase();
+                  
+                  // Bulletproof dark mode color mappings
                   const tone =
-                    p.risk === "critical" ? "bg-destructive text-destructive-foreground"
-                    : p.risk === "high" ? "bg-warning text-warning-foreground"
-                    : p.risk === "medium" ? "bg-info text-info-foreground"
-                    : "bg-success text-success-foreground";
+                    riskLevel === "critical" 
+                      ? "bg-red-500 text-white dark:bg-red-950/40 dark:text-red-400 dark:border dark:border-red-800/60"
+                      : riskLevel === "high" 
+                      ? "bg-amber-500 text-white dark:bg-amber-950/40 dark:text-amber-400 dark:border dark:border-amber-800/60"
+                      : riskLevel === "medium" 
+                      ? "bg-blue-500 text-white dark:bg-blue-950/40 dark:text-blue-400 dark:border dark:border-blue-800/60"
+                      : "bg-emerald-500 text-white dark:bg-emerald-950/40 dark:text-emerald-400 dark:border dark:border-emerald-800/60";
+                    
                   return (
-                    <div key={p.id} className={`aspect-square rounded-md p-2 flex flex-col justify-between ${tone}`}>
-                      <span className="font-semibold leading-tight line-clamp-2">{p.name}</span>
-                      <span className="capitalize opacity-90">{p.risk}</span>
+                    <div 
+                      key={p.id} 
+                      className={`aspect-square rounded-xl p-3 flex flex-col justify-between shadow-sm font-medium transition-colors ${tone}`}
+                    >
+                      <span className="font-bold leading-tight line-clamp-3">{p.name}</span>
+                      <span className="capitalize text-[10px] font-semibold tracking-wider px-1.5 py-0.5 bg-black/10 dark:bg-white/10 rounded-md w-max">
+                        {p.risk}
+                      </span>
                     </div>
                   );
                 })}
               </div>
-              <div className="mt-4 flex items-center justify-between text-[11px] text-muted-foreground">
-                <div className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-success" /> Low</div>
-                <div className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-info" /> Medium</div>
-                <div className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-warning" /> High</div>
-                <div className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-destructive" /> Critical</div>
+              
+              {/* Colored Key Labels Footer */}
+              <div className="mt-6 pt-4 border-t border-border flex flex-wrap items-center justify-between gap-2 text-[11px] text-muted-foreground">
+                <div className="flex items-center gap-1.5">
+                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 dark:bg-emerald-400" /> Low
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="h-2.5 w-2.5 rounded-full bg-blue-500 dark:bg-blue-400" /> Medium
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="h-2.5 w-2.5 rounded-full bg-amber-500 dark:bg-amber-400" /> High
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="h-2.5 w-2.5 rounded-full bg-red-500 dark:bg-red-400" /> Critical
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -370,27 +393,46 @@ function DashboardPage() {
         </Card>
       </div>
 
-      {/* Executive Report Modal */}
+      {/* Executive Report Modal Overlay */}
       {executiveReport && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-in fade-in duration-200"
           onClick={() => setExecutiveReport("")}
         >
           <div
-            className="bg-card rounded-xl shadow-xl max-w-2xl w-full max-h-[85vh] overflow-hidden flex flex-col"
+            className="bg-white dark:bg-zinc-950 border border-border rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden relative animate-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 border-b border-border bg-white dark:bg-zinc-950 sticky top-0 z-10">
               <div className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-primary" />
-                <h2 className="text-base font-semibold">AI Executive Report</h2>
+                <Sparkles className="h-5 w-5 text-primary" />
+                <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
+                  AI Executive Report
+                </h2>
               </div>
-              <Button variant="ghost" size="icon" onClick={() => setExecutiveReport("")} aria-label="Close">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setExecutiveReport("")}
+                className="rounded-full h-8 w-8 text-muted-foreground hover:text-foreground"
+              >
                 <X className="h-4 w-4" />
               </Button>
             </div>
-            <div className="p-5 overflow-y-auto whitespace-pre-wrap text-sm leading-relaxed">
-              {executiveReport}
+        
+            {/* Modal Content Body */}
+            <div className="p-6 overflow-y-auto flex-1 bg-white dark:bg-zinc-950">
+              <div className="prose dark:prose-invert max-w-none whitespace-pre-wrap text-sm leading-relaxed text-slate-800 dark:text-slate-200 space-y-4">
+                {executiveReport}
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 border-t border-border bg-slate-50 dark:bg-zinc-900 flex justify-end">
+              <Button size="sm" onClick={() => setExecutiveReport("")}>
+                Close Report
+              </Button>
             </div>
           </div>
         </div>
