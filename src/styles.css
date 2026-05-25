@@ -3,6 +3,10 @@
 
 @custom-variant dark (&:is(.dark *));
 
+:root {
+  font-family: Inter, sans-serif;
+}
+
 html,
 body,
 #root {
